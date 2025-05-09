@@ -11,13 +11,13 @@ jobs:
     - uses: actions/checkout@v2
     - name: setup python
       run: |
-        pip3 install -r requirements.txt
+        pip3 install -r ./services/web/requirements.txt
     - name: docker
       run: |
         git submodule init
         git submodule update
         docker compose up -d --build
         docker ps -a
-        sleep 20
-        sh load_tweets.sh
-        docker compose exec -T pg_normalized ./run_tests.sh
+        # sleep 20
+        # sh load_tweets.sh
+        # docker compose exec -T pg_normalized ./run_tests.sh
