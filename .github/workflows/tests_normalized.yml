@@ -12,6 +12,7 @@ jobs:
     - name: setup python
       run: |
         pip3 install -r ./services/web/requirements.txt
+        echo "${{secrets.FLASK_DEV}}" > .env.dev
     - name: docker
       run: |
         git submodule init
