@@ -20,6 +20,5 @@ jobs:
         docker compose up -d --build
         docker ps -a
         sleep 20
-        # sh load_tweets.sh
-        docker compose exec web python manage.py seed_db
-        docker compose exec -T db ./run_tests.sh
+        sh load_tweets.sh
+       
