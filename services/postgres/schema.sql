@@ -18,7 +18,7 @@ CREATE TABLE users (
 
 CREATE TABLE tweets (
     id_tweets BIGINT PRIMARY KEY,
-    id_users BIGINT,
+    id_users BIGINT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     text TEXT NOT NULL,
     lang TEXT,

@@ -95,22 +95,23 @@ def insert_tweet(connection,tweet):
     You'll need to add appropriate SQL insert statements to get it to work.
     '''
 
-    # skip tweet if it's already inserted
-    sql=sqlalchemy.sql.text('''
-    SELECT id_tweets 
-    FROM tweets
-    WHERE id_tweets = :id_tweets
-    ''')
-    res = connection.execute(sql,{
-        'id_tweets':tweet['id'],
-        })
-    connection.commit()
-    if res.first() is not None:
-        return
 
     # insert tweet within a transaction;
     # this ensures that a tweet does not get "partially" loaded
     with connection.begin() as trans:
+
+        # skip tweet if it's already inserted
+        sql=sqlalchemy.sql.text('''
+        SELECT id_tweets 
+        FROM tweets
+        WHERE id_tweets = :id_tweets
+        ''')
+        res = connection.execute(sql,{
+            'id_tweets':tweet['id'],
+            })
+        #connection.commit()
+        if res.first() is not None:
+            return
 
         ########################################
         # insert into the users table
@@ -137,13 +138,13 @@ def insert_tweet(connection,tweet):
         logging.debug(sql)
         screen_name = remove_nulls(tweet['user']['screen_name'])
         name = remove_nulls(tweet['user']['name'])
-        if screen_name and name:
+        #if screen_name and name:
 
-            res = connection.execute(sql, {
-                'id_users': tweet['user']['id'],
-                'screen_name': screen_name, 
-                'name': name 
-                })
+        res = connection.execute(sql, {
+            'id_users': tweet['user']['id'],
+            'screen_name': screen_name, 
+            'name': name 
+            })
 
         ########################################
         # insert into the tweets table
