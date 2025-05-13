@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+{% if bad_credentials %}
+<p class='color:red'>
+    Username or password incorrect. 
+</p>
+{% endif %}
+
+<h2>Login Webpage!!!</h2>
+<form action='/login' method="POST">
+    <table>
+        <tr>
+            <td>
+                username
+            </td>
+            <td>
+                <input type=text name=username>
+            </td>
+        </tr>
+        <tr>
+            <td>password</td>
+            <td><input type=text name=password></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type=submit value='login'></td>
+        </tr>
+<p>New information</p>
+{% endblock %}

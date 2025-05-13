@@ -1,0 +1,21 @@
+<html>
+    <head>
+        <title>Big Data Twitter </title>
+    </head>
+    <body>
+        <h1> Big Data Twitter Clone :)</h1>
+        <ol>
+            <li><a href='/'>Home</a></li>
+            {% if logged_in %}
+            <li><a href='/logout'>Logout</a></li>
+            <li><a href='/create_message'>Create Message</a></li>
+            {% else %}
+            <li><a href='/create_user'>Create User</a></li>
+            <li><a href='/login'>Login</a></li>
+            {% endif %}
+        </ol>
+
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>

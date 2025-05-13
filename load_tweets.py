@@ -39,7 +39,7 @@ def remove_nulls(s):
     'hello world'
     '''
     if s is None:
-        return None
+        return None 
     else:
         return s.replace('\x00','')
 
@@ -124,118 +124,36 @@ def insert_tweet(connection,tweet):
         sql = sqlalchemy.sql.text(f'''
             INSERT INTO users
                 ( id_users
-                , created_at
-                , updated_at
-                , friends_count
-                , listed_count
-                , favourites_count
-                , statuses_count
-                , protected
-                , verified
                 , screen_name
                 , name
-                , location
-                , description
-                , withheld_in_countries
                 )
                 VALUES
                 ( :id_users
-                , :created_at
-                , :updated_at
-                , :friends_count
-                , :listed_count
-                , :favourites_count
-                , :statuses_count
-                , :protected
-                , :verified
                 , :screen_name
                 , :name
-                , :location
-                , :description
-                , :withheld_in_countries
                 )
                 ON CONFLICT DO NOTHING
             ''')
         logging.debug(sql)
-        res = connection.execute(sql, {
-            'id_users': tweet['user']['id'],
-            'created_at': tweet['user']['created_at'],
-            'updated_at': tweet['user']['created_at'],
-            'friends_count': tweet['user']['friends_count'],
-            'listed_count': tweet['user']['listed_count'],
-            'favourites_count': tweet['user']['favourites_count'],
-            'statuses_count': tweet['user']['statuses_count'],
-            'protected': tweet['user']['protected'],
-            'verified': tweet['user']['verified'],
-            'screen_name': remove_nulls(tweet['user']['screen_name']),
-            'name': remove_nulls(tweet['user']['name']),
-            'location': remove_nulls(tweet['user']['location']),
-            'description': remove_nulls(tweet['user']['description']),
-            'withheld_in_countries': tweet["user"].get("withheld_in_countries", None) 
-            })
+        screen_name = remove_nulls(tweet['user']['screen_name'])
+        name = remove_nulls(tweet['user']['name'])
+        if screen_name and name:
+
+            res = connection.execute(sql, {
+                'id_users': tweet['user']['id'],
+                'screen_name': screen_name, 
+                'name': name 
+                })
 
         ########################################
         # insert into the tweets table
         ########################################
 
-        try:
-            geo_coords = tweet['geo']['coordinates']
-            geo_coords = str(tweet['geo']['coordinates'][0]) + ' ' + str(tweet['geo']['coordinates'][1])
-            geo_str = 'POINT'
-        except TypeError:
-            try:
-                geo_coords = '('
-                for i,poly in enumerate(tweet['place']['bounding_box']['coordinates']):
-                    if i>0:
-                        geo_coords+=','
-                    geo_coords+='('
-                    for j,point in enumerate(poly):
-                        geo_coords+= str(point[0]) + ' ' + str(point[1]) + ','
-                    geo_coords+= str(poly[0][0]) + ' ' + str(poly[0][1])
-                    geo_coords+=')'
-                geo_coords+=')'
-                geo_str = 'MULTIPOLYGON'
-            except KeyError:
-                if tweet['user']['geo_enabled']:
-                    geo_str = None
-                    geo_coords = None
 
         try:
             text = tweet['extended_tweet']['full_text']
         except:
             text = tweet['text']
-
-        try:
-            country_code = tweet['place']['country_code'].lower()
-        except TypeError:
-            country_code = None
-
-        if country_code == 'us':
-            state_code = tweet['place']['full_name'].split(',')[-1].strip().lower()
-            if len(state_code)>2:
-                state_code = None
-        else:
-            state_code = None
-
-        try:
-            place_name = tweet['place']['full_name']
-        except TypeError:
-            place_name = None
-
-        # NOTE:
-        # The tweets table has the following foreign key:
-        # > FOREIGN KEY (in_reply_to_user_id) REFERENCES users(id_users)
-        #
-        # This means that every "in_reply_to_user_id" field must reference a valid entry in the users table.
-        # If the id is not in the users table, then you'll need to add it in an "unhydrated" form.
-        in_reply_to_user_id = tweet.get('in_reply_to_user_id', None)
-        if in_reply_to_user_id is not None:
-            sql_insert_user = sqlalchemy.sql.text(f'''
-                INSERT INTO users (id_users)
-                VALUES (:id_users)
-                ON CONFLICT DO NOTHING
-            ''')
-            connection.execute(sql_insert_user, {'id_users': in_reply_to_user_id}) 
 
         # insert the tweet
 
@@ -244,62 +162,23 @@ def insert_tweet(connection,tweet):
            ( id_tweets
            , id_users
            , created_at
-           , in_reply_to_status_id
-           , in_reply_to_user_id
-           , quoted_status_id
-           , retweet_count
-           , favorite_count
-           , quote_count
-           , withheld_copyright
-           , withheld_in_countries
-           , source
            , text
-           , country_code
-           , state_code
            , lang
-           , place_name
-           , geo
            )
            VALUES
            ( :id_tweets
            , :id_users
            , :created_at
-           , :in_reply_to_status_id
-           , :in_reply_to_user_id
-           , :quoted_status_id
-           , :retweet_count
-           , :favorite_count
-           , :quote_count
-           , :withheld_copyright
-           , :withheld_in_countries
-           , :source
            , :text
-           , :country_code
-           , :state_code
            , :lang
-           , :place_name
-           , :geo
            )
            ''')
         res = connection.execute(sql, {
            'id_tweets': tweet['id'],
            'id_users': tweet['user']['id'],
            'created_at': tweet['created_at'],
-           'in_reply_to_status_id': tweet['in_reply_to_status_id'],
-           'in_reply_to_user_id': in_reply_to_user_id, 
-           'quoted_status_id': tweet.get("quoted_status_id",None), 
-           'retweet_count': tweet['retweet_count'],
-           'favorite_count': tweet['favorite_count'],
-           'quote_count': tweet['quote_count'], 
-           'withheld_copyright': tweet.get('withheld_copyright', None), 
-           'withheld_in_countries': tweet.get('withheld_in_countries', None), 
-           'source': remove_nulls(tweet['source']),
            'text': remove_nulls(text), 
-           'country_code': country_code, 
-           'state_code': state_code, 
-           'lang': tweet.get('lang', None), 
-           'place_name': place_name, 
-           'geo': geo_str + "(" + geo_coords + ")"
+           'lang': tweet.get('lang', None) 
            })
 
         ########################################
