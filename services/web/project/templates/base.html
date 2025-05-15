@@ -1,21 +1,26 @@
 <html>
     <head>
         <title>Big Data Twitter </title>
+
+        <link rel="stylesheet" href={{url_for('static', filename='css/root_style.css')}}>
     </head>
     <body>
-        <h1> Big Data Twitter Clone :)</h1>
-        <ol>
-            <li><a href='/'>Home</a></li>
-            {% if logged_in %}
-            <li><a href='/logout'>Logout</a></li>
-            <li><a href='/create_message'>Create Message</a></li>
-            {% else %}
-            <li><a href='/create_user'>Create User</a></li>
-            <li><a href='/login'>Login</a></li>
-            {% endif %}
-        </ol>
+        <div class="container">
+            <h1> Big Data Twitter Clone :)</h1>
+            <ol>
+                <li><a href='/'>Home</a></li>
+                <li><a href='/search'>Search</a></li>
+                {% if logged_in %}
+                <li><a href='/logout'>Logout</a></li>
+                <li><a href='/create_message'>Create Message</a></li>
+                {% else %}
+                <li><a href='/create_account'>Create Account</a></li>
+                <li><a href='/login'>Login</a></li>
+                {% endif %}
+            </ol>
 
-        {% block content %}
-        {% endblock %}
+            {% block content %}
+            {% endblock %}
+        </div>
     </body>
 </html>

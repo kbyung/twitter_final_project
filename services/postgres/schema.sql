@@ -1,5 +1,4 @@
-CREATE EXTENSION postgis;
-    
+CREATE EXTENSION rum;    
 \set ON_ERROR_STOP on
 
 BEGIN;
@@ -11,10 +10,11 @@ BEGIN;
  */
 CREATE TABLE users (
     id_users BIGINT PRIMARY KEY,
-    screen_name TEXT NOT NULL,
+    screen_name TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     password TEXT
 );  
+CREATE INDEX ON users(screen_name, password);
 
 CREATE TABLE tweets (
     id_tweets BIGINT PRIMARY KEY,
@@ -30,6 +30,8 @@ CREATE TABLE tweets (
 -- FOREIGN KEY (in_reply_to_status_id) REFERENCES tweets(id_tweets),
 -- FOREIGN KEY (quoted_status_id) REFERENCES tweets(id_tweets)
 );
+CREATE INDEX ON tweets(created_at);
+CREATE INDEX ON tweets(id_users);
 
 CREATE TABLE tweet_tags (
     id_tweets BIGINT,

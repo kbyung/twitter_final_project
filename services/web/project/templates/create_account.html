@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <p class="flash {{ category }}">{{ msg }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+<h2>Create Account Webpage!!!</h2>
+
+{% if password_mismatch %}
+
+    <p class="error">Passwords do not match. Please try again.</p>
+
+{% endif %}
+
+{% if missing_fields %}
+    <p class="error">All fields are required. Please complete the form.</p>
+{% endif %}
+
+{% if username_exists %}
+    <p class="error">This username is already taken. Please chose another one.</p>
+{% endif %}
+
+<form action='/create_account' method="POST">
+    <table>
+        <tr>
+            <td>
+               Username 
+            </td>
+            <td>
+                <input type=text name=screen_name>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Name
+            </td>
+            <td>
+                <input type=text name=name>
+            </td>
+        </tr>
+        <tr>
+            <td>Enter new password</td>
+            <td><input type=text name=password></td>
+        </tr>
+        <tr>
+            <td>Retype new password</td>
+            <td><input type=text name=retype_password></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type=submit value='Create Account'></td>
+        </tr>
+{% endblock %}
+

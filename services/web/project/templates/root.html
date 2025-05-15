@@ -1,7 +1,43 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Home</h2>
-<p>Welcome To Twitter Clone.</p>
+<div class="content">
+    <div class="header">
+        <h2>Home</h2>
+        <p>Welcome To Twitter Clone.</p>
+    </div>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="message">
+            <div class="message-header">
+                <div class="user-info">
+                    <span class="screen-name">@{{ message.screen_name }}</span>
+                </div>
+                <span class="time">{{ message.created_at }}</span>
+            </div>
+            <div class="message-body">
+                {{ message.text }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="pagination">
+        {% if has_prev %}
+        <a href="{{ url_for('root', page=page-1) }}">Previous</a>
+        {% endif %}
 
+        <span> Page {{page}} </span>
+        
+        {% if has_next %}
+        <a href="{{ url_for('root', page=page+1) }}">Next</a>
+        {% endif %}
+    </div>
+    
+    {% else %}
+    <p>No messages found.</p>
+    {% endif %}
+</div>
 {% endblock %}
