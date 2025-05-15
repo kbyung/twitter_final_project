@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="content">
+    <div class="header">
+      <h2>Search Tweets</h2>
+    </div>
+
+    <!-- Search form: use GET so q & page appear in URL -->
+    <form method="get" action="{{ url_for('search') }}">
+      <textarea
+        name="q"
+        rows="2"
+        cols="50"
+        placeholder="Enter search terms…"
+        required
+      >{{ query }}</textarea>
+      <div>
+        <input type="submit" value="Search">
+      </div>
+    </form>
+
+    {% if query %}
+      {% if messages %}
+        <div class="messages">
+          {% for msg in messages %}
+            <div class="message">
+              <div class="message-header">
+                <span class="screen-name">@{{ msg.screen_name }}</span>
+                <span class="time">{{ msg.created_at }}</span>
+              </div>
+              <div class="message-body">
+                {{msg.highlighted_text | safe}}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="pagination">
+          {% if has_prev %}
+            <a href="{{ url_for('search', q=query, page=page-1) }}">Previous</a>
+          {% endif %}
+
+          <span>Page {{ page }}</span>
+
+          {% if has_next %}
+            <a href="{{ url_for('search', q=query, page=page+1) }}">Next</a>
+          {% endif %}
+        </div>
+      {% else %}
+        <p>No tweets found for “<strong>{{ query }}</strong>”.</p>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endblock %}
+

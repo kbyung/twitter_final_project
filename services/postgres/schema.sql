@@ -1,4 +1,4 @@
-CREATE EXTENSION rum;    
+CREATE EXTENSION IF NOT EXISTS rum;    
 \set ON_ERROR_STOP on
 
 BEGIN;
@@ -32,6 +32,7 @@ CREATE TABLE tweets (
 );
 CREATE INDEX ON tweets(created_at);
 CREATE INDEX ON tweets(id_users);
+CREATE INDEX ON tweets USING rum(to_tsvector('english', text));
 
 CREATE TABLE tweet_tags (
     id_tweets BIGINT,

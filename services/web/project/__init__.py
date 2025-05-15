@@ -234,7 +234,6 @@ def create_message():
         body = request.form.get("text", "").strip()
         if body:
             with engine.connect() as conn:
-                # 2) look up the current user's id
                 result = conn.execute(
                     text("SELECT id_users FROM users WHERE screen_name = :u AND password = :p"),
                     {"u": username, "p": password}
@@ -242,14 +241,12 @@ def create_message():
                 row = result.fetchone()
                 user_id = row["id_users"]
 
-                # 3) generate a new tweet ID (simple max+1 strategy)
                 nxt = conn.execute(text(
                     "SELECT COALESCE(MAX(id_tweets), 0) + 1 AS next_id FROM tweets"
                 )).mappings()
                 nxt_row = nxt.fetchone()
                 next_id = nxt_row["next_id"]
 
-                # 4) insert with timestamp
                 conn.execute(text("""
                     INSERT INTO tweets (id_tweets, id_users, created_at, text)
                     VALUES (:id, :uid, NOW(), :txt)
@@ -259,15 +256,66 @@ def create_message():
                     "txt":  body
                 })
                 conn.commit()
-            # 5) send them back to home so they see their new message
         return redirect(url_for("root"))
 
     return render_template("create_message.html", logged_in=good_credentials ) 
 
 @app.route("/search")
 def search():
-    return "search!"
+    username = request.cookies.get("username")
+    password = request.cookies.get("password")
+    good_credentials = are_credentials_good(username, password)
 
+    q = request.args.get("q", "", type=str)
+    page = request.args.get("page", 1, type=int)
+    page_size = 20
+    limit = page_size + 1
+    offset = (page - 1) * page_size
+
+    messages = []
+    has_next = False
+    has_prev = (page > 1)
+
+    if q:
+        sql = text("""
+            SELECT
+              t.id_tweets,
+              t.created_at,
+              t.text,
+              ts_headline('english', t.text,
+                plainto_tsquery('english', :q),
+                'StartSel="<font color=red><b>", StopSel="</font></b>", HighlightAll=TRUE'
+                ) AS highlighted_text,
+              u.screen_name
+            FROM tweets t
+            JOIN users u
+              ON t.id_users = u.id_users
+            WHERE to_tsvector('english', t.text)
+                  @@ plainto_tsquery('english', :q)
+            ORDER BY to_tsvector('english', t.text)
+                     <=> plainto_tsquery('english', :q)
+            LIMIT :limit
+            OFFSET :offset
+        """)
+        params = {"q": q, "limit": limit, "offset": offset}
+
+        engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_dev")
+        with engine.connect() as conn:
+            result = conn.execute(sql, params)
+            messages = [dict(row._mapping) for row in result]
+
+        if len(messages) > page_size:
+            has_next = True
+
+    return render_template(
+        "search.html",
+        query=q,
+        messages=messages,
+        logged_in=good_credentials,
+        page=page,
+        has_prev=has_prev,
+        has_next=has_next
+    )
 
 @app.route("/static/<path:filename>")
 def staticfiles(filename):
