@@ -25,6 +25,7 @@ class User(db.Model):
     def __init__(self, email):
         self.email = email
 
+
 def print_debug_info():
     username = request.args.get('username')
     print('request.args.get("username")=', username)
@@ -33,19 +34,16 @@ def print_debug_info():
     print('request.form.get("username")=', request.form.get("username"))
     print('request.form.get("password")=', request.form.get("password"))
 
-    #cookies
     print('request.cookies.get("username")=', request.cookies.get("username"))
     print('request.cookies.get("password")=', request.cookies.get("password"))
 
 
-
 def are_credentials_good(username, password):
-
-    engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_dev")
+    engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_prod")
     with engine.connect() as connection:
         query = text("SELECT id_users FROM users WHERE screen_name = :username AND password = :password")
-        result = connection.execute(query, {"username": username, "password":  password})
-        signed_in= result.fetchone()
+        result = connection.execute(query, {"username": username, "password": password})
+        signed_in = result.fetchone()
 
     if signed_in:
         return True
@@ -53,30 +51,28 @@ def are_credentials_good(username, password):
         return False
 
 
-
 @app.route("/")
 def root():
     print_debug_info()
-    engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_dev")
-    messages =  []
+    engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_prod")
+    messages = []
 
     page = request.args.get('page', 1, type=int)
     offset = (page - 1) * 20
 
-
     with engine.connect() as connection:
         query = text("""
             SELECT
-                t.id_tweets, 
+                t.id_tweets,
                 t.created_at,
                 t.text,
                 u.screen_name
-            FROM 
+            FROM
                 tweets t
             JOIN
                 users u ON t.id_users = u.id_users
             ORDER BY
-                t.created_at DESC, t.id_tweets DESC 
+                t.created_at DESC, t.id_tweets DESC
             LIMIT 20
             OFFSET :offset
         """)
@@ -86,9 +82,8 @@ def root():
     # check if more pages exist
     has_next = len(messages) == 20
     has_prev = page > 1
-    
+   
     # check if logged in correctly
-
     username = request.cookies.get("username")
     password = request.cookies.get("password")
     good_credentials = are_credentials_good(username, password)
@@ -101,7 +96,7 @@ def root():
             page=page,
             has_prev=has_prev,
             has_next=has_next
-            ) 
+        ) 
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -111,8 +106,6 @@ def login():
     password = request.form.get("password")
     print("username=", username)
     print("password=", password)
-
-
 
     # first time we've visited, no form submission
 
@@ -127,9 +120,8 @@ def login():
         if not good_credentials:
             return render_template('login.html', bad_credentials=True)
         else:
-            # if we're here, we have successfully logged in 
-            # create a cookie that contains the username/password info
-#            return 'login successful'
+             # if we're here, we have successfully logged in 
+             # create a cookie that contains the username/password info
              response = make_response(redirect(url_for('root')))
              response.set_cookie('username', username)
              response.set_cookie('password', password)
@@ -150,7 +142,6 @@ def create_account():
     print_debug_info()
 
     if request.method == "POST":
-
         screen_name= request.form.get("screen_name", "").strip()
         name = request.form.get("name", "").strip()
         password = request.form.get("password", "")
@@ -180,7 +171,7 @@ def create_account():
             )
 
         # check if username already exits in database
-        engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_dev")
+        engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_prod")
         with engine.connect() as connection:
             query = text("SELECT id_users FROM users WHERE screen_name = :screen_name")
             result = connection.execute(query, {"screen_name": screen_name})
@@ -229,7 +220,7 @@ def create_message():
         return redirect(url_for("login"))
 
 
-    engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_dev")
+    engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_prod")
     if request.method == "POST":
         body = request.form.get("text", "").strip()
         if body:
@@ -299,7 +290,7 @@ def search():
         """)
         params = {"q": q, "limit": limit, "offset": offset}
 
-        engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_dev")
+        engine = create_engine("postgresql://hello_flask:hello_flask@db:5432/hello_flask_prod")
         with engine.connect() as conn:
             result = conn.execute(sql, params)
             messages = [dict(row._mapping) for row in result]
