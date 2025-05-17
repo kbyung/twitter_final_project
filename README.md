@@ -1,10 +1,7 @@
-# flask-on-docker
+# Big Data Twitter Clone 
 
-A containerized web-app built using the Instagram tech stack: postgresql database, gunicorn+Flask webserver, and nginx for load balancer. This repo contains a production-ready Docker Compose file to handle the uploading of static and media files. 
+A Twitter clone with 10 million tweets built using the Instagram tech stack: postgresql database, gunicorn+Flask webserver, and nginx for load balancer. This repo contains a production-ready Docker Compose file to handle viewing tweets, login, account creation, and full text search.  
 
-## Upload Functionality
-
-The GIF below showcases the upload functionality of the web-app. 
 
 ## Build Instructions
 
